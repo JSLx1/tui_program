@@ -9,7 +9,7 @@ use crossterm::{
     cursor::{Hide, MoveToNextLine}, 
     event::{self, poll, Event, KeyCode}, 
     style::{Print, ResetColor, SetForegroundColor}, 
-    terminal::{disable_raw_mode, enable_raw_mode}, 
+    terminal::{disable_raw_mode, enable_raw_mode, Clear, ClearType}, 
     ExecutableCommand
 };
 
@@ -32,6 +32,8 @@ fn in_raw_mode() -> std::io::Result<()> {
     // set clock
     let mut current_time = Duration::new(0, 0);
     let clock = TimePrinter::new(2, 2, 6, 3);
+    
+    s_out.execute(Clear(ClearType::All)).unwrap();
 
     // repeat until ESC input detected
     loop {
