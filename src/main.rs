@@ -1,10 +1,16 @@
 // libraries
 use std::{
-        io::stdout, thread::sleep, time::{Duration, SystemTime, UNIX_EPOCH}
+        io::stdout, 
+        thread::sleep, 
+        time::{Duration, SystemTime, UNIX_EPOCH}
     };
 
 use crossterm::{
-    cursor::MoveToNextLine, event::{self, poll, Event, KeyCode}, execute, style::{Print, ResetColor, SetForegroundColor}, terminal::{disable_raw_mode, enable_raw_mode, size, SetSize}, ExecutableCommand
+    cursor::{Hide, MoveToNextLine}, 
+    event::{self, poll, Event, KeyCode}, 
+    style::{Print, ResetColor, SetForegroundColor}, 
+    terminal::{disable_raw_mode, enable_raw_mode}, 
+    ExecutableCommand
 };
 
 use tui_program::Widget;
@@ -12,32 +18,22 @@ use tui_program::TimePrinter;
 
 
 // ========== raw terminal ==========
-fn in_raw() -> std::io::Result<()> {
+fn in_raw_mode() -> std::io::Result<()> {
     
-    let (cols, rows) = size()?;
-    // Resize terminal and scroll up.
-    execute!(
-        stdout(),
-        SetSize(10, 10),
-        // ScrollUp(5),
-    )?;
-
-    // Be a good citizen, cleanup
-    execute!(stdout(), SetSize(cols, rows))?;
-
-
     // enable raw mode
     enable_raw_mode().unwrap();
     
-    // set output
+    // set stdout
     let mut binding = stdout();
     let mut s_out = binding
-        .execute(SetForegroundColor(crossterm::style::Color::Rgb{r: 225, g: 104, b: 5})).unwrap();
+        .execute(SetForegroundColor(crossterm::style::Color::Rgb{r: 225, g: 104, b: 5})).unwrap()
+        .execute(Hide).unwrap();
 
     // set clock
     let mut current_time = Duration::new(0, 0);
     let clock = TimePrinter::new(2, 2, 6, 3);
 
+    // repeat until ESC input detected
     loop {
         // show time
         current_time = SystemTime::now().duration_since(UNIX_EPOCH).unwrap()
@@ -65,7 +61,7 @@ fn in_raw() -> std::io::Result<()> {
     }
 
     // clean console
-    clock.unshow(&mut s_out);
+    clock.hide(&mut s_out);
 
     s_out
         .execute(ResetColor).unwrap()
@@ -75,34 +71,11 @@ fn in_raw() -> std::io::Result<()> {
     disable_raw_mode().unwrap();
     
 
-    return Ok(());
+    Ok(())
 }
 
 // main
 fn main() -> std::io::Result<()> {
-    /* 
-    // using the macro
-    execute!(
-        stdout(),
-        // SetForegroundColor(Color::Blue),
-        SetBackgroundColor(Color::Red),
-        Print("Styled text here."),
-        ResetColor
-    )?;
-
-    println!(" ");
-
-    // or using functions
-    stdout()
-        .execute(SetBackgroundColor(Color::Blue))?
-        // .execute(SetForegroundColor(Color::Red))?
-        .execute(Print("Styled text here."))?
-        .execute(ResetColor)?;
-
-    println!(" ");
-    */
-    
-    in_raw().unwrap();
-
+    in_raw_mode().unwrap();
     Ok(())
 }

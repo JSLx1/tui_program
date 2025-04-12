@@ -1,16 +1,20 @@
-use std::{io::Stdout, time::Duration};
+use std::{
+    io::Stdout, 
+    time::Duration
+};
 use crossterm::{
     cursor::MoveTo,
     ExecutableCommand,
     style::Print,
 };
 
+
 pub trait Widget {
     type PrintingData;
     fn get_size(&self) -> [u16; 2];
     fn show(&self, stdout: &mut Stdout, data: &Self::PrintingData);
-    fn unshow(&self, stdout: &mut Stdout);
-    fn move_and_unshow(&mut self, stdout: &mut Stdout, p_col: u16, p_row: u16);
+    fn hide(&self, stdout: &mut Stdout);
+    fn move_and_hide(&mut self, stdout: &mut Stdout, p_col: u16, p_row: u16);
 }
 
 
@@ -34,7 +38,7 @@ impl Widget for SevenDigit {
         [self.line_length+2, self.line_length*2+1]
     }
 
-    fn unshow(&self, stdout: &mut Stdout) {
+    fn hide(&self, stdout: &mut Stdout) {
         let seg_p_col: [u16;8] = [0, 1, 0, 1,                self.line_length+1, 0,                  1,                  self.line_length+1];
         let seg_p_row: [u16;8] = [0, 0, 1, self.line_length, 1,                  self.line_length+1, self.line_length*2, self.line_length+1];
         let seg_is_col: u8 = 0b01010010;
@@ -110,8 +114,8 @@ impl Widget for SevenDigit {
         }
     }
 
-    fn move_and_unshow(&mut self, stdout: &mut Stdout, p_col: u16, p_row: u16) {
-        self.unshow(stdout);
+    fn move_and_hide(&mut self, stdout: &mut Stdout, p_col: u16, p_row: u16) {
+        self.hide(stdout);
         
         self.p_col = p_col;
         self.p_row = p_row;
@@ -137,7 +141,7 @@ impl Widget for Dot {
         [1, 1]
     }
 
-    fn unshow(&self, stdout: &mut Stdout) {
+    fn hide(&self, stdout: &mut Stdout) {
         stdout
             .execute(MoveTo(self.p_col, self.p_row)).unwrap()
             .execute(Print(' ')).unwrap();
@@ -149,8 +153,8 @@ impl Widget for Dot {
             .execute(Print('.')).unwrap();
     }
 
-    fn move_and_unshow(&mut self, stdout: &mut Stdout, p_col: u16, p_row: u16) {
-        self.unshow(stdout);
+    fn move_and_hide(&mut self, stdout: &mut Stdout, p_col: u16, p_row: u16) {
+        self.hide(stdout);
 
         self.p_col = p_col;
         self.p_row = p_row;
@@ -210,15 +214,15 @@ impl Widget for TimePrinter {
     }
 
 
-    fn unshow(&self, stdout: &mut Stdout) {
-        // unshow dots
+    fn hide(&self, stdout: &mut Stdout) {
+        // hide dots
         for u in 0..4usize {
-            self.dots[u].unshow(stdout);
+            self.dots[u].hide(stdout);
         }
 
-        // unshow digits
+        // hide digits
         for u in 0..6usize {
-            self.digits[u].unshow(stdout);
+            self.digits[u].hide(stdout);
         }
     }
 
@@ -239,8 +243,8 @@ impl Widget for TimePrinter {
         }
     }
 
-    fn move_and_unshow(&mut self, stdout: &mut Stdout, p_col: u16, p_row: u16) {
-        self.unshow(stdout);
+    fn move_and_hide(&mut self, stdout: &mut Stdout, p_col: u16, p_row: u16) {
+        self.hide(stdout);
         
         self.p_col = p_col;
         self.p_row = p_row;
